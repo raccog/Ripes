@@ -49,11 +49,24 @@ void ProgramViewer::resizeEvent(QResizeEvent *e) {
 
 void ProgramViewer::updateProgram(bool binary) {
   m_labelAddrOffsetMap.clear();
-  const QString text =
-      binary ? Assembler::binobjdump(ProcessorHandler::getProgram(),
-                                     m_labelAddrOffsetMap)
-             : Assembler::objdump(ProcessorHandler::getProgram(),
-                                  m_labelAddrOffsetMap);
+
+  constexpr unsigned TIMES = 1000;
+  std::cout << "Disassembling program with "
+            << ProcessorHandler::getProgram()->sourceMapping.size()
+            << " instructions " << TIMES << " times... ";
+  auto start = std::chrono::system_clock::now();
+  QString text;
+  for (unsigned i = 0; i < TIMES; ++i)
+    text = binary ? Assembler::binobjdump(ProcessorHandler::getProgram(),
+                                          m_labelAddrOffsetMap)
+                  : Assembler::objdump(ProcessorHandler::getProgram(),
+                                       m_labelAddrOffsetMap);
+  auto elapsed = std::chrono::system_clock::now() - start;
+  std::cout << "took an average of "
+            << std::chrono::duration_cast<std::chrono::microseconds>(elapsed)
+                       .count() /
+                   TIMES
+            << " microseconds.\n";
 
   clearBlockHighlights();
   setPlainText(text);
