@@ -294,6 +294,7 @@ void EditTab::sourceCodeChanged() {
   RipesSettings::setValue(RIPES_SETTING_SOURCECODE, source);
   switch (m_currentSourceType) {
   case SourceType::Assembly:
+
     assemble(source);
     break;
   default:
@@ -304,8 +305,20 @@ void EditTab::sourceCodeChanged() {
 }
 
 void EditTab::assemble(const QString &source) {
-  auto res = ProcessorHandler::getAssembler()->assembleRaw(
-      source, &IOManager::get().assemblerSymbols());
+  constexpr unsigned TIMES = 1000;
+  std::cout << "Assembling program with " << source.size() << " characters "
+            << TIMES << " times... ";
+  auto start = std::chrono::system_clock::now();
+  Assembler::AssembleResult res;
+  for (unsigned i = 0; i < TIMES; ++i)
+    res = ProcessorHandler::getAssembler()->assembleRaw(
+        source, &IOManager::get().assemblerSymbols());
+  auto elapsed = std::chrono::system_clock::now() - start;
+  std::cout << "took an average of "
+            << std::chrono::duration_cast<std::chrono::microseconds>(elapsed)
+                       .count() /
+                   TIMES
+            << " microseconds.\n";
   *m_sourceErrors = res.errors;
   if (m_sourceErrors->size() == 0) {
     ProcessorHandler::loadProgram(std::make_shared<Program>(res.program));
