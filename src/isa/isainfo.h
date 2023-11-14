@@ -193,13 +193,12 @@ using ISAInfoMap =
 
 struct ISAInfoRegistry {
   template <ISA isa>
-  static const std::shared_ptr<ISAInfoBase> &
-  getISA(const QStringList &extensions) {
+  static std::shared_ptr<ISAInfoBase> getISA(const QStringList &extensions) {
     return instance().supportedISA<isa>(extensions);
   }
 
   template <ISA isa>
-  static const std::shared_ptr<ISAInfoBase> &getSupportedISA() {
+  static std::shared_ptr<ISAInfoBase> getSupportedISA() {
     return instance().supportedISA<isa>();
   }
 
@@ -210,7 +209,7 @@ private:
   }
 
   template <ISA isa>
-  const std::shared_ptr<ISAInfoBase> &supportedISA(
+  std::shared_ptr<ISAInfoBase> supportedISA(
       const QStringList &extensions = ISAInfo<isa>::getSupportedExtensions()) {
     auto key = std::pair(isa, extensions);
     if (supportedISAMap.count(key) == 0) {
